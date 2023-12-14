@@ -16,6 +16,22 @@ db = mysql.connector.connect(
 c = db.cursor()
 
 
+def returnPolicy():
+    print("Return Policy : ")
+    print("The issued book should be returned within 14 days(2 weeks).")
+    print(
+        "If the user kept the issued book for more than 14 days, then the user have to pay ₹5 as fine for each extra day the user kept the issued book."
+    )
+    print("--------------------------")
+
+
+def length(i):
+    s = str(i)
+    length = len(s) + 2
+
+    return length
+
+
 def validOption():
     print("Please enter a valid option!")
     print("--------------------------")
@@ -71,10 +87,10 @@ def aboutLibrary():
     print("About Library")
     print("--------------------------")
     # Display library information
-    print("Year of Library's Establishment : ", 2016)
+    print("Year of Library's Establishment : ", 2023)
     print("Name of the Librarian : ", userName[0][0])
-    print("Number of Books Available in the Library : ", len(totalBooks))
-    print("Number of Users Enrolled in the Library : ", len(totalUsers))
+    print("Total Number of Books Available in the Library : ", len(totalBooks))
+    print("Total Number of Users Enrolled in the Library : ", len(totalUsers))
     print("--------------------------")
 
     userMenu()
@@ -86,7 +102,7 @@ def displayBooks():
     print("Display Books")
     print("--------------------------")
     # Retrieve all books from the database
-    c.execute("SELECT * FROM books")
+    c.execute("SELECT * FROM books ORDER BY bookId")
     result = c.fetchall()
     db.commit()
 
@@ -97,11 +113,12 @@ def displayBooks():
         i = 0
         for row in result:
             i += 1
+            r = length(i)
             print(f"{i}. Book ID : {row[0]}")
-            print(f"   Book Name : {row[1]}")
-            print(f"   Publication Year : {row[2]}")
-            print(f"   Author Name : {row[7]}")
-            print(f"   Issue Status : {row[8]}")
+            print(" " * r + f"Book Name : {row[1]}")
+            print(" " * r + f"Publication Year : {row[2]}")
+            print(" " * r + f"Author Name : {row[7]}")
+            print(" " * r + f"Issue Status : {row[8]}")
             print("--------------------------")
 
         userMenu()
@@ -144,7 +161,7 @@ def searchBooksbyId():
     print("--------------------------")
 
     # Execute SQL query to retrieve book information by Book ID
-    c.execute("SELECT * FROM books WHERE bookId={}".format(bookId))
+    c.execute("SELECT * FROM books WHERE bookId=%s", (bookId,))
     result = c.fetchall()
     db.commit()
 
@@ -155,11 +172,12 @@ def searchBooksbyId():
         i = 0
         for row in result:
             i += 1
+            r = length(i)
             print(f"{i}. Book ID : {row[0]}")
-            print(f"   Book Name : {row[1]}")
-            print(f"   Publication Year : {row[2]}")
-            print(f"   Author Name : {row[7]}")
-            print(f"   Issue Status : {row[8]}")
+            print(" " * r + f"Book Name : {row[1]}")
+            print(" " * r + f"Publication Year : {row[2]}")
+            print(" " * r + f"Author Name : {row[7]}")
+            print(" " * r + f"Issue Status : {row[8]}")
             print("--------------------------")
 
         searchBooksMenu()
@@ -180,7 +198,7 @@ def searchBooksbyKeyword():
     print("--------------------------")
 
     # Execute SQL query to retrieve books by keyword
-    c.execute("SELECT * FROM books WHERE bookName LIKE '%{}%'".format(keyword))
+    c.execute("SELECT * FROM books WHERE bookName LIKE '%{}%' ORDER BY bookId".format(keyword))
     result = c.fetchall()
     db.commit()
 
@@ -193,11 +211,12 @@ def searchBooksbyKeyword():
         i = 0
         for row in result:
             i += 1
+            r = length(i)
             print(f"{i}. Book ID : {row[0]}")
-            print(f"   Book Name : {row[1]}")
-            print(f"   Publication Year : {row[2]}")
-            print(f"   Author Name : {row[7]}")
-            print(f"   Issue Status : {row[8]}")
+            print(" " * r + f"Book Name : {row[1]}")
+            print(" " * r + f"Publication Year : {row[2]}")
+            print(" " * r + f"Author Name : {row[7]}")
+            print(" " * r + f"Issue Status : {row[8]}")
             print("--------------------------")
 
         searchBooksMenu()
@@ -327,7 +346,7 @@ def deleteBook():
         for row in result:
             if row[0] == bookId:
                 # Execute SQL query to delete the book from the database
-                c.execute("DELETE FROM books WHERE bookId={}".format(bookId))
+                c.execute("DELETE FROM books WHERE bookId=%s", (bookId,))
                 db.commit()
 
                 # Notify the user that the book has been deleted successfully
@@ -373,7 +392,7 @@ def updateBookMenu():
 # Function to update book details
 def updateBook():
     print("--------------------------")
-    print("Update Book")
+    print("Update Book Details")
     print("--------------------------")
     print("1. Update the Book ID")
     print("2. Update the Book Name")
@@ -477,42 +496,78 @@ def issueBook():
     print("Issue Book")
     print("--------------------------")
     bookId = int(input("Enter the Book ID to be Issued: "))
+    userId = int(input("Enter the User ID to whom Book will be Issued: "))
 
     # Execute SQL query to check the issue status of the book
-    c.execute("SELECT issueStatus FROM books WHERE bookId={}".format(bookId))
-    result = c.fetchall()
+    c.execute("SELECT userId FROM users")
+    result1 = c.fetchall()
+    c.execute("SELECT bookId FROM books")
+    result2 = c.fetchall()
+    c.execute("SELECT issueStatus FROM books WHERE bookId=%s", (bookId,))
+    result3 = c.fetchall()
     db.commit()
 
-    # Check if the book is not already issued
-    if result[0][0] == "not issued":
-        # Execute SQL queries to update book details and mark it as issued
-        c.execute(
-            "UPDATE books SET issueDate = CURRENT_DATE WHERE bookId = {}".format(bookId)
-        )
-        c.execute(
-            "UPDATE books SET issueTime = CURRENT_TIME WHERE bookId = {}".format(bookId)
-        )
-        c.execute(
-            "UPDATE books SET issueStatus = 'issued' WHERE bookId = {}".format(bookId)
-        )
-        db.commit()
+    if (userId,) in result1:
+        if (bookId,) in result2:
+            # Check if the book is not already issued
+            if result3[0][0] == "not issued":
+                # Execute SQL queries to update book details and mark it as issued
+                c.execute(
+                    "UPDATE books SET issueDate = CURRENT_DATE WHERE bookId = %s",
+                    (bookId,),
+                )
+                c.execute(
+                    "UPDATE books SET issueTime = CURRENT_TIME WHERE bookId = %s",
+                    (bookId,),
+                )
+                c.execute(
+                    "UPDATE books SET issueStatus = 'issued' WHERE bookId = %s",
+                    (bookId,),
+                )
+                c.execute(
+                    "UPDATE books SET returnDate = NULL WHERE bookId = %s", (bookId,)
+                )
+                c.execute(
+                    "UPDATE books SET returnTime = NULL WHERE bookId = %s", (bookId,)
+                )
+                c.execute(
+                    "UPDATE books SET issuedUserId = %s WHERE bookId = %s",
+                    (userId, bookId),
+                )
+                db.commit()
+                c.execute(
+                    "select issuedUserId,bookName,issueDate,issueTime from books where bookId=%s",
+                    (bookId,),
+                )
+                result = c.fetchall()
+                c.execute(
+                    "INSERT INTO issuedBooksDetails (userId, bookId,bookName,issueDate,issueTime) VALUES (%s, %s, %s, %s, %s)",
+                    (result[0][0], bookId, result[0][1], result[0][2], result[0][3]),
+                )
+                db.commit()
 
-        print("Book issued successfully!")
-        print("--------------------------")
-        print("Return Policy : ")
-        print("The issued book should be returned within 14 days(2 weeks).")
-        print(
-            "If you kept the issued book for more than 14 days, then you have to pay ₹5 as fine for each extra day you kept the issued book."
-        )
-        print("--------------------------")
+                print("--------------------------")
+                print(
+                    f'Book of Book Id "{bookId}" is issued successfully to the User of User Id "{userId}".'
+                )
+                print("--------------------------")
+                returnPolicy()
 
-        issueBookMenu()
+                issueBookMenu()
+            else:
+                # Notify the user that the book is already issued
+                print(
+                    f'The book of book id "{bookId}" is already issued by another user.'
+                )
+                print("--------------------------")
+
+                issueBookMenu()
+        else:
+            print(
+                f"Book with book id {bookId} does not available in the digital library."
+            )
     else:
-        # Notify the user that the book is already issued
-        print(f'The book of book id "{bookId}" is already issued by another user.')
-        print("--------------------------")
-
-        issueBookMenu()
+        print(f"User with user id {userId} does not exists in the digital library.")
 
 
 # Return book menu options
@@ -542,58 +597,93 @@ def returnBook():
     bookId = int(input("Enter the Book ID to be Returned: "))
 
     # Execute SQL query to check the issue status of the book
-    c.execute("SELECT issueStatus FROM books WHERE bookId={}".format(bookId))
-    result = c.fetchall()
+    c.execute("SELECT bookId FROM books")
+    result1 = c.fetchall()
+    c.execute("SELECT issueStatus FROM books WHERE bookId=%s", (bookId,))
+    result2 = c.fetchall()
+
     db.commit()
 
-    # Check if the book is issued
-    if result[0][0] == "issued":
-        # Execute SQL queries to update book details and mark it as returned
-        c.execute(
-            "UPDATE books SET returnDate = CURRENT_DATE WHERE bookId = {}".format(
-                bookId
+    if (bookId,) in result1:
+        # Check if the book is issued
+        if result2[0][0] == "issued":
+            # Execute SQL queries to update book details and mark it as returned
+            c.execute(
+                "UPDATE books SET returnDate = CURRENT_DATE WHERE bookId = %s",
+                (bookId,),
             )
-        )
-        c.execute(
-            "UPDATE books SET returnTime = CURRENT_TIME WHERE bookId = {}".format(
-                bookId
+            c.execute(
+                "UPDATE books SET returnTime = CURRENT_TIME WHERE bookId = %s",
+                (bookId,),
             )
-        )
-        c.execute(
-            "UPDATE books SET issueStatus = 'not issued' WHERE bookId = {}".format(
-                bookId
+            c.execute(
+                "UPDATE books SET issueStatus = 'not issued' WHERE bookId = %s",
+                (bookId,),
             )
-        )
-        db.commit()
+            db.commit()
+            c.execute(
+                "select issuedUserId,returnDate,returnTime from books where bookId=%s",
+                (bookId,),
+            )
+            result = c.fetchall()
+            c.execute(
+                "UPDATE issuedBooksDetails SET returnDate = %s, returnTime = %s WHERE userId = %s AND bookId = %s",
+                (result[0][1], result[0][2], result[0][0], bookId),
+            )
 
-        print("Book returned successfully!")
+            db.commit()
+            c.execute(
+                "UPDATE books SET issuedUserId = NULL WHERE bookId = %s", (bookId,)
+            )
+            db.commit()
 
-        c.execute("select issueDate from books WHERE bookId = {}".format(bookId))
-        issueDate = c.fetchall()
-        c.execute("select returnDate from books WHERE bookId = {}".format(bookId))
-        returnDate = c.fetchall()
-        db.commit()
+            print(f'The book of book id "{bookId}" is returned successfully.')
 
-        d1 = datetime.strptime(f"{issueDate[0][0]}", "%Y-%m-%d")
-        d2 = datetime.strptime(f"{returnDate[0][0]}", "%Y-%m-%d")
-        dateDifference = d1 - d2
-        print(f"Difference : {dateDifference.days} days")
+            c.execute("select issueDate from books WHERE bookId = %s", (bookId,))
+            issueDate = c.fetchall()
+            c.execute("select returnDate from books WHERE bookId = %s", (bookId,))
+            returnDate = c.fetchall()
+            db.commit()
 
-        if dateDifference.days > 14:
-            extraDays = dateDifference.days - 14
-            print("Fine : ₹", extraDays * 5)
+            c.execute("UPDATE books SET issueDate = NULL WHERE bookId = %s", (bookId,))
+            c.execute("UPDATE books SET issueTime = NULL WHERE bookId = %s", (bookId,))
+            c.execute("UPDATE books SET returnDate = NULL WHERE bookId = %s", (bookId,))
+            c.execute("UPDATE books SET returnTime = NULL WHERE bookId = %s", (bookId,))
+            db.commit()
+
+            d1 = datetime.strptime(f"{issueDate[0][0]}", "%Y-%m-%d")
+            d2 = datetime.strptime(f"{returnDate[0][0]}", "%Y-%m-%d")
+            dateDifference = d1 - d2
+
+            if dateDifference.days > 14:
+                extraDays = dateDifference.days - 14
+                fine = extraDays * 5
+                print("Fine(in Rs.) : ", fine)
+                c.execute(
+                    "update issuedBooksDetails set fineInRs=%s where userId=%s and bookId=%s",
+                    (fine, result[0][0], bookId),
+                )
+                db.commit()
+            else:
+                fine = 0 * 5
+                print("Fine(in Rs.) : ", fine)
+                c.execute(
+                    "update issuedBooksDetails set fineInRs=%s where userId=%s and bookId=%s",
+                    (fine, result[0][0], bookId),
+                )
+                db.commit()
+
+            print("--------------------------")
+
+            returnBookMenu()
         else:
-            print("No Fine!")
+            # Notify the user that the book is not issued
+            print(f'The book of book id "{bookId}" is not issued by any user.')
+            print("--------------------------")
 
-        print("--------------------------")
-
-        returnBookMenu()
+            returnBookMenu()
     else:
-        # Notify the user that the book is not issued
-        print(f'The book of book id "{bookId}" is not issued by any user.')
-        print("--------------------------")
-
-        returnBookMenu()
+        print(f"Book with book id {bookId} does not available in the digital library.")
 
 
 def addUserMenu():
@@ -625,6 +715,7 @@ def addUser():
     userName = input("Enter the User Name : ")
     userPhoneNumber = input("Enter the User Phone Number : ")
     userEmailId = input("Enter the User Email ID : ")
+    password = input("Enter the User Password : ")
     print("--------------------------")
 
     c.execute("SELECT userId FROM users")
@@ -641,8 +732,8 @@ def addUser():
         else:
             # Execute SQL query to insert the new user into the database
             c.execute(
-                "INSERT INTO users (userId, userName,phoneNumber,emailId) VALUES (%s, %s,%s,%s)",
-                (userId, userName, userPhoneNumber, userEmailId),
+                "INSERT INTO users (userId, userName,phoneNumber,emailId) VALUES (%s, %s, %s, %s, %s)",
+                (userId, userName, userPhoneNumber, userEmailId, password),
             )
             db.commit()
 
@@ -689,7 +780,7 @@ def deleteUser():
     if choice.lower() in ["yes", "y"]:
         for row in result:
             if row[0] == userId:
-                c.execute("DELETE FROM users WHERE userId={}".format(userId))
+                c.execute("DELETE FROM users WHERE userId=%s", (userId,))
                 db.commit()
 
                 # Notify the user that the user has been deleted successfully
@@ -733,7 +824,7 @@ def updateUserMenu():
 # Function to update user details
 def updateUser():
     print("--------------------------")
-    print("Update User")
+    print("Update User Details")
     print("--------------------------")
     # Display user update options
     print("1. Update the User ID")
@@ -831,9 +922,9 @@ def modifyUser():
     print("Modify User")
     print("--------------------------")
     # Display user modification options
-    print("1. Add a User")
-    print("2. Delete a User")
-    print("3. Update the User Details")
+    print("1. Add User")
+    print("2. Delete User")
+    print("3. Update User Details")
     print("4. Home")
     print("5. Back")
     print("6. Exit")
@@ -888,7 +979,7 @@ def displayUsers():
     print("Display Users")
     print("--------------------------")
     # Fetch all users from the database
-    c.execute("SELECT * FROM users")
+    c.execute("SELECT * FROM users ORDER BY userId")
     result = c.fetchall()
     db.commit()
 
@@ -897,12 +988,13 @@ def displayUsers():
         print("Users enrolled in the Digital Library are :")
         i = 0
         for row in result:
-            i = i + 1
+            i += 1
+            r = length(i)
             print(f"{i}. User ID : {row[0]}")
-            print(f"   User Name : {row[1]}")
-            print(f"   Phone Number : {row[2]}")
-            print(f"   Email ID : {row[3]}")
-            print(f"   Admin Status : {row[5]}")
+            print(" " * r + f"User Name : {row[1]}")
+            print(" " * r + f"Phone Number : {row[2]}")
+            print(" " * r + f"Email ID : {row[3]}")
+            print(" " * r + f"Admin Status : {row[5]}")
             print("--------------------------")
 
         displayUsersMenu()
@@ -940,7 +1032,7 @@ def searchUsersbyId():
     userId = int(input("Enter the User ID to search the User : "))
 
     # Search for the user in the database
-    c.execute("SELECT * FROM users WHERE userId={}".format(userId))
+    c.execute("SELECT * FROM users WHERE userId=%s", (userId,))
     result = c.fetchall()
     db.commit()
 
@@ -949,13 +1041,15 @@ def searchUsersbyId():
         print(f'User enrolled in the Digital Library with the User ID "{userId}" is :')
         i = 0
         for row in result:
-            i = i + 1
+            i += 1
+            r = length(i)
             print(f"{i}. User ID : {row[0]}")
-            print(f"   User Name : {row[1]}")
-            print(f"   Phone Number : {row[2]}")
-            print(f"   Email ID : {row[3]}")
-            print(f"   Admin Status : {row[5]}")
+            print(" " * r + f"User Name : {row[1]}")
+            print(" " * r + f"Phone Number : {row[2]}")
+            print(" " * r + f"Email ID : {row[3]}")
+            print(" " * r + f"Admin Status : {row[5]}")
             print("--------------------------")
+
         searchUsersMenu()
 
     else:
@@ -974,7 +1068,7 @@ def searchUsersbyKeyword():
     keyword = input("Enter a Keyword to search Users : ")
 
     # Search for users with the given keyword in their names
-    c.execute("SELECT * FROM users WHERE userName LIKE '%{}%'".format(keyword))
+    c.execute("SELECT * FROM users WHERE userName LIKE '%{}%' ORDER BY userId".format(keyword))
     result = c.fetchall()
     db.commit()
 
@@ -985,12 +1079,13 @@ def searchUsersbyKeyword():
         )
         i = 0
         for row in result:
-            i = i + 1
+            i += 1
+            r = length(i)
             print(f"{i}. User ID : {row[0]}")
-            print(f"   User Name : {row[1]}")
-            print(f"   Phone Number : {row[2]}")
-            print(f"   Email ID : {row[3]}")
-            print(f"   Admin Status : {row[5]}")
+            print(" " * r + f"User Name : {row[1]}")
+            print(" " * r + f"Phone Number : {row[2]}")
+            print(" " * r + f"Email ID : {row[3]}")
+            print(" " * r + f"Admin Status : {row[5]}")
             print("--------------------------")
 
         searchUsersMenu()
@@ -1037,9 +1132,9 @@ def modifyBook():
     print("Modify Book")
     print("--------------------------")
     # Book modification menu
-    print("1. Add a Book")
-    print("2. Delete a Book")
-    print("3. Update the Book Details")
+    print("1. Add Book")
+    print("2. Delete Book")
+    print("3. Update Book Details")
     print("4. Home")
     print("5. Back")
     print("6. Exit")
@@ -1125,28 +1220,29 @@ def addNote():
     noteDescription = input("Enter the Note Description : ")
     print("--------------------------")
 
-    c.execute("SELECT noteNumber FROM notes where userId={}".format(USERID))
+    c.execute("SELECT noteNumber FROM notes where userId=%s", (USERID,))
     result = c.fetchall()
     db.commit()
 
-    for row in result:
-        if row[0] == noteNumber:
-            print(
-                f'The note of note number "{noteNumber}" is already exists in the digital library.'
-            )
+    if (noteNumber,) in result:
+        print(
+            f'The note of note number "{noteNumber}" is already exists in the digital library.'
+        )
+        print("--------------------------")
 
-            addNoteMenu()
-        else:
-            # Execute SQL query to insert the note into the database
-            c.execute(
-                "INSERT INTO notes (userId, noteNumber, noteTitle, noteDescription, updateDate, updateTime) VALUES (%s, %s, %s, %s, CURRENT_DATE, CURRENT_TIME)",
-                (USERID, noteNumber, noteTitle, noteDescription),
-            )
-            db.commit()
+        addNoteMenu()
+    else:
+        # Execute SQL query to insert the note into the database
+        c.execute(
+            "INSERT INTO notes (userId, noteNumber, noteTitle, noteDescription, updateDate, updateTime) VALUES (%s, %s, %s, %s, CURRENT_DATE, CURRENT_TIME)",
+            (USERID, noteNumber, noteTitle, noteDescription),
+        )
+        db.commit()
 
-            print("Note added successfully!")
+        print(f'The note of note number "{noteNumber}" is added successfully.')
+        print("--------------------------")
 
-            addNoteMenu()
+        addNoteMenu()
 
 
 def deleteNoteMenu():
@@ -1175,33 +1271,34 @@ def deleteNote():
     print("Delete Note")
     print("--------------------------")
     # Get note number to be deleted from the user
-    noteNumber = int(input("Enter the Note Number to Delete Note : "))
-    choice = input("Are you sure to delete the Book? (Yes/No) : ")
+    noteNumber = int(input("Enter the Note Number to Delete the Note : "))
+    choice = input("Are you sure to delete the Note? (Yes/No) : ")
     print("--------------------------")
 
-    c.execute("SELECT bookId FROM books where userId={}".format(USERID))
+    c.execute("SELECT noteNumber FROM notes where userId=%s", (USERID,))
     result = c.fetchall()
     db.commit()
 
     if choice.lower() in ["yes", "y"]:
-        for row in result:
-            if row[0] == noteNumber:
-                # Execute SQL query to delete the note from the database
-                c.execute(
-                    "delete FROM notes WHERE userId=%s and noteNumber=%s",
-                    (USERID, noteNumber),
-                )
-                db.commit()
+        if (noteNumber,) in result:
+            # Execute SQL query to delete the note from the database
+            c.execute(
+                "delete FROM notes WHERE userId=%s and noteNumber=%s",
+                (USERID, noteNumber),
+            )
+            db.commit()
 
-                print("Note deleted Successfully!")
+            print(f'The note of note number "{noteNumber}" is deleted successfully.')
+            print("--------------------------")
 
-                deleteNoteMenu()
-            else:
-                print(
-                    f'The note of note number "{noteNumber}" is does not exists in the digital library.'
-                )
+            deleteNoteMenu()
+        else:
+            print(
+                f'The note of note number "{noteNumber}" is does not exists in the digital library.'
+            )
+            print("--------------------------")
 
-                deleteNoteMenu()
+            deleteNoteMenu()
     elif choice.lower() in ["no", "n"]:
         print("--------------------------")
         print("Note Not Deleted!")
@@ -1213,7 +1310,7 @@ def deleteNote():
 
 
 # Update note menu options
-def updateNoteMenu():
+def updateNotesMenu():
     print("1. Home")
     print("2. Back")
     print("3. Exit")
@@ -1225,7 +1322,7 @@ def updateNoteMenu():
     if userChoice == 1:
         home()
     elif userChoice == 2:
-        updateNote()
+        updateNotes()
     elif userChoice == 3:
         exiting()
     else:
@@ -1233,9 +1330,9 @@ def updateNoteMenu():
 
 
 # Function to update a note
-def updateNote():
+def updateNotes():
     print("--------------------------")
-    print("Update Note")
+    print("Update Notes")
     print("--------------------------")
     # Display update options
     print("1. Update the Note Number")
@@ -1272,8 +1369,9 @@ def updateNote():
         db.commit()
 
         print("Note Number changed Successfully!")
+        print("--------------------------")
 
-        updateNoteMenu()
+        updateNotesMenu()
 
     elif userChoice == 2:
         # Update Note Title
@@ -1298,8 +1396,9 @@ def updateNote():
         db.commit()
 
         print("Note Title changed Successfully!")
+        print("--------------------------")
 
-        updateNoteMenu()
+        updateNotesMenu()
 
     elif userChoice == 3:
         # Update Note Description
@@ -1324,8 +1423,9 @@ def updateNote():
         db.commit()
 
         print("Note Description changed successfully!")
+        print("--------------------------")
 
-        updateNoteMenu()
+        updateNotesMenu()
 
     elif userChoice == 5:
         home()
@@ -1346,9 +1446,9 @@ def modifyNote():
     print("Modify Notes")
     print("--------------------------")
     # Display modification options
-    print("1. Add a Note")
-    print("2. Delete a Note")
-    print("3. Update the Note")
+    print("1. Add Note")
+    print("2. Delete Note")
+    print("3. Update Notes")
     print("4. Home")
     print("5. Back")
     print("6. Exit")
@@ -1362,7 +1462,7 @@ def modifyNote():
     elif userChoice == 2:
         deleteNote()
     elif userChoice == 3:
-        updateNote()
+        updateNotes()
     elif userChoice == 4:
         home()
     elif userChoice == 5:
@@ -1395,7 +1495,7 @@ def displayNotesMenu():
 # Function to display notes
 def displayNotes():
     # Fetch all notes from the database
-    c.execute("SELECT * FROM notes")
+    c.execute("SELECT * FROM notes ORDER BY noteNumber")
     result = c.fetchall()
     db.commit()
 
@@ -1404,12 +1504,13 @@ def displayNotes():
         print(f"Notes available in the Digital Library are :")
         i = 0
         for row in result:
-            i = i + 1
+            i += 1
+            r = length(i)
             print(f"{i}. Note Number : {row[1]}")
-            print(f"   Note Title : {row[2]}")
-            print(f"   Note Description : {row[3]}")
-            print(f"   Update Date : {row[4]}")
-            print(f"   Update Time : {row[5]}")
+            print(" " * r + f"Note Title : {row[2]}")
+            print(" " * r + f"Note Description : {row[3]}")
+            print(" " * r + f"Update Date : {row[4]}")
+            print(" " * r + f"Update Time : {row[5]}")
             print("--------------------------")
 
         displayNotesMenu()
@@ -1445,7 +1546,7 @@ def searchNotesbynoteNumber():
     noteNumber = int(input("Enter the Note Number to search the Note : "))
 
     # Execute SQL query to fetch notes with the given note number
-    c.execute("SELECT * FROM notes WHERE bookId={}".format(noteNumber))
+    c.execute("SELECT * FROM notes WHERE bookId=%s", (noteNumber,))
     result = c.fetchall()
     db.commit()
 
@@ -1456,10 +1557,11 @@ def searchNotesbynoteNumber():
         )
         i = 0
         for row in result:
-            i = i + 1
+            i += 1
+            r = length(i)
             print(f"{i}. Note Number : {row[1]}")
-            print(f"   Note Title : {row[2]}")
-            print(f"   Note Description : {row[3]}")
+            print(" " * r + f"Note Title : {row[2]}")
+            print(" " * r + f"Note Description : {row[3]}")
             print("--------------------------")
 
         searchNotesMenu()
@@ -1480,7 +1582,7 @@ def searchNotesbyKeyword():
     keyword = input("Enter a Keyword to search Notes : ")
 
     # Execute SQL query to fetch notes with the given keyword in the title
-    c.execute("SELECT * FROM notes WHERE noteTitle LIKE '%{}%'".format(keyword))
+    c.execute("SELECT * FROM notes WHERE noteTitle LIKE '%{}%' ORDER BY noteNumber".format(keyword))
     result = c.fetchall()
     db.commit()
 
@@ -1491,10 +1593,11 @@ def searchNotesbyKeyword():
         )
         i = 0
         for row in result:
-            i = i + 1
+            i += 1
+            r = length(i)
             print(f"{i}. Note Number : {row[1]}")
-            print(f"   Note Title : {row[2]}")
-            print(f"   Note Description : {row[3]}")
+            print(" " * r + f"Note Title : {row[2]}")
+            print(" " * r + f"Note Description : {row[3]}")
             print("--------------------------")
 
         searchNotesMenu()
@@ -1567,7 +1670,7 @@ def changeAdmin():
     print("--------------------------")
 
     # Check if the entered user ID exists
-    c.execute("SELECT password FROM users WHERE userId={}".format(newAdminId))
+    c.execute("SELECT password FROM users WHERE userId=%s", (newAdminId,))
     result = c.fetchall()
     db.commit()
 
@@ -1584,9 +1687,8 @@ def changeAdmin():
                     "UPDATE users SET adminStatus='not admin' WHERE adminStatus ='admin'"
                 )
                 c.execute(
-                    "UPDATE users SET adminStatus='admin' WHERE userId ={}".format(
-                        newAdminId
-                    )
+                    "UPDATE users SET adminStatus='admin' WHERE userId =%s",
+                    (newAdminId,),
                 )
                 db.commit()
 
@@ -1616,7 +1718,7 @@ def authAdmin():
     adminPassword = input("Enter the Admin's User Password : ")
 
     # Check if the entered admin ID exists
-    c.execute("SELECT password FROM users WHERE userId={}".format(adminId))
+    c.execute("SELECT password FROM users WHERE userId=%s", (adminId,))
     result = c.fetchall()
     db.commit()
 
@@ -1645,15 +1747,15 @@ def admin():
     print("--------------------------")
     print("Admin")
     print("--------------------------")
-    print("1. Login as User")
-    print("2. Modify User")
-    print("3. Display Users")
-    print("4. Search Users")
-    print("5. Modify Book")
-    print("6. Issue Book")
-    print("7. Return Book")
-    print("8. Change Admin")
-    print("9. Home")
+    print("1.  Login into User Panel")
+    print("2.  Modify User")
+    print("3.  Display Users")
+    print("4.  Search Users")
+    print("5.  Modify Book")
+    print("6.  Issue Book")
+    print("7.  Return Book")
+    print("8.  Change Admin")
+    print("9.  Home")
     print("10. Back")
     print("11. Exit")
     userChoice = int(input("Enter your Choice to Continue : "))
@@ -1698,7 +1800,7 @@ def authUser():
     password = input("Enter the User Password : ")
 
     # Check if the entered user ID exists
-    c.execute("SELECT password FROM users WHERE userId={}".format(userId))
+    c.execute("SELECT password FROM users WHERE userId=%s", (userId,))
     result = c.fetchall()
     db.commit()
 
@@ -1711,7 +1813,7 @@ def authUser():
         # If the entered password matches the user's password
         if password == result[0][0]:
             global USERID
-            USERID = userId  # Set the global USERID variable
+            USERID = userId
             print("\033[0;35m--------------------------\033[0;0m")
             print("\033[0;36mUser is verified successfully.\033[0;0m")
             print("\033[0;35m--------------------------\033[0;0m")
@@ -1727,15 +1829,12 @@ def wikipediaArticles():
     # Function to fetch article details
     def fetchingArticle(keyword, articleLength=1500):
         # Creating a Wikipedia API object
-        wiki_wiki = wikipediaapi.Wikipedia(
-            language="en", user_agent="digital-library/1.1"
-        )
-
+        wiki = wikipediaapi.Wikipedia(language="en", user_agent="digital-library/1.1")
         # Fetching the page for the given search query
-        page_py = wiki_wiki.page(keyword)
+        page = wiki.page(keyword)
 
         # Checking if the page exists
-        if not page_py.exists():
+        if not page.exists():
             print(
                 f'Sorry, the Wikipedia Article for the keyword "{keyword}" does not exists.'
             )
@@ -1743,13 +1842,15 @@ def wikipediaArticles():
         else:
             # Displaying article title
             print("Title : ")
-            print(page_py.title)
+            print(page.title)
+            print("URL : ")
+            print(page.fullurl)
             # Displaying a summary of the article within the specified length
             print("Summary : ")
 
             start = 0
             end = 174
-            article = page_py.summary[:articleLength]
+            article = page.summary[:articleLength]
 
             while end <= articleLength:
                 print(article[start:end])
@@ -1816,61 +1917,122 @@ def news():
     userMenu()
 
 
+def issuedBooksDetails():
+    print("--------------------------")
+    print("Issued Books Details")
+    print("--------------------------")
+    returnPolicy()
+
+    c.execute("SELECT * FROM issuedBooksDetails WHERE userId=%s ORDER BY bookId", (USERID,))
+    result = c.fetchall()
+    db.commit()
+
+    i = 0
+    for row in result:
+        i += 1
+        r = length(i)
+        print(f"{i}. Book ID : ", row[1])
+        print(" " * r + "Book Name : ", row[2])
+        print(" " * r + "Issue Date : ", row[3])
+        print(" " * r + "Issue Time : ", row[4])
+        print(" " * r + "Return Date : ", row[5])
+        print(" " * r + "Return Time : ", row[6])
+        print(" " * r + "Fine(in Rs.) : ", row[7])
+        print("--------------------------")
+
+    userMenu()
+
+
 # Function to display the user menu
 def user():
     print("--------------------------")
     print("User")
     print("--------------------------")
-    print("1. Login as Admin")
-    print("2. About the Library")
-    print("3. News")
-    print("4. Wikipedia Articles")
-    print("5. Display Books")
-    print("6. Search Books")
-    print("7. Notes")
-    print("8. Home")
-    print("9. Back")
-    print("10. Exit")
-    userChoice = int(input("Enter your Choice to Continue : "))
-    print("--------------------------")
-
     # Check if the entered user ID exists
     c.execute('SELECT userId FROM users WHERE adminStatus="admin"')
     result = c.fetchall()
     db.commit()
 
-    # Handle user choices
-    if userChoice == 1:
-        if result[0][0] == USERID:
+    if result[0][0] == USERID:
+        print("1.  Login into Admin Panel")
+        print("2.  About the Library")
+        print("3.  News")
+        print("4.  Wikipedia Articles")
+        print("5.  Display Books")
+        print("6.  Search Books")
+        print("7.  Issued Books Details")
+        print("8.  Notes")
+        print("9.  Home")
+        print("10. Back")
+        print("11. Exit")
+        userChoice = int(input("Enter your Choice to Continue : "))
+        print("--------------------------")
+
+        # Handle user choices
+        if userChoice == 1:
             print("You are successfully login as admin.")
             print("--------------------------")
 
             admin()
+        elif userChoice == 2:
+            aboutLibrary()
+        elif userChoice == 3:
+            news()
+        elif userChoice == 4:
+            wikipediaArticles()
+        elif userChoice == 5:
+            displayBooks()
+        elif userChoice == 6:
+            searchBooks()
+        elif userChoice == 7:
+            issuedBooksDetails()
+        elif userChoice == 8:
+            notes()
+        elif userChoice == 9:
+            home()
+        elif userChoice == 10:
+            authUser()
+        elif userChoice == 11:
+            exiting()
         else:
-            print("You are not the admin!")
-            print("--------------------------")
-
-            user()
-    elif userChoice == 2:
-        aboutLibrary()
-    elif userChoice == 3:
-        news()
-    elif userChoice == 4:
-        wikipediaArticles()
-    elif userChoice == 5:
-        displayBooks()
-    elif userChoice == 6:
-        searchBooks()
-    elif userChoice == 7:
-        notes()
-    elif userChoice == 8:
-        home()
-    elif userChoice == 9:
-        authUser()
-    elif userChoice == 10:
-        exiting()
+            validOption()
     else:
-        validOption()
+        print("1.  About the Library")
+        print("2.  News")
+        print("3.  Wikipedia Articles")
+        print("4.  Display Books")
+        print("5.  Search Books")
+        print("6.  Issued Books Details")
+        print("7.  Notes")
+        print("8.  Home")
+        print("9.  Back")
+        print("10. Exit")
+        userChoice = int(input("Enter your Choice to Continue : "))
+        print("--------------------------")
+
+        # Handle user choices
+        if userChoice == 1:
+            aboutLibrary()
+        elif userChoice == 2:
+            news()
+        elif userChoice == 3:
+            wikipediaArticles()
+        elif userChoice == 4:
+            displayBooks()
+        elif userChoice == 5:
+            searchBooks()
+        elif userChoice == 6:
+            issuedBooksDetails()
+        elif userChoice == 7:
+            notes()
+        elif userChoice == 8:
+            home()
+        elif userChoice == 9:
+            authUser()
+        elif userChoice == 10:
+            exiting()
+        else:
+            validOption()
 
 
 # Function to display the main menu
