@@ -16,6 +16,7 @@ db = mysql.connector.connect(
 c = db.cursor()
 
 
+# Function to display the return policy information
 def returnPolicy():
     print("Return Policy : ")
     print("The issued book should be returned within 14 days(2 weeks).")
@@ -25,6 +26,7 @@ def returnPolicy():
     print("--------------------------")
 
 
+# Function to calculate the length of a given integer after converting it to a string
 def length(i):
     s = str(i)
     length = len(s) + 2
@@ -32,6 +34,7 @@ def length(i):
     return length
 
 
+# Function to display a message for an invalid option
 def validOption():
     print("Please enter a valid option!")
     print("--------------------------")
@@ -46,6 +49,7 @@ def exiting():
     exit()
 
 
+# Function to display the user menu and handle user choices
 def userMenu():
     # Displaying options for the user
     print("1. Add a Note")
@@ -255,6 +259,7 @@ def searchBooks():
         validOption()
 
 
+# Function to display the add book menu and handle user choices
 def addBookMenu():
     # Add book menu options
     print("1. Home")
@@ -288,28 +293,28 @@ def addBook():
     result = c.fetchall()
     db.commit()
 
-    for row in result:
-        if row[0] == bookId:
-            print(
-                f'The book of book id "{bookId}" is already available in the digital library.'
-            )
+    if (bookId,) in result:
+        print(
+            f'The book of book id "{bookId}" is already available in the digital library.'
+        )
+        print("--------------------------")
 
-            addBookMenu()
-        else:
-            # Execute SQL query to insert the new book into the database
-            c.execute(
-                "INSERT INTO books (bookId, bookName, publicationYear) VALUES (%s, %s, %s)",
-                (bookId, bookName, publicationYear),
-            )
-            db.commit()
+        addBookMenu()
+    else:
+        # Execute SQL query to insert the new book into the database
+        c.execute(
+            "INSERT INTO books (bookId, bookName, publicationYear) VALUES (%s, %s, %s)",
+            (bookId, bookName, publicationYear),
+        )
+        db.commit()
 
-            # Notify the user that the book has been added successfully
-            print("Book added Successfully!")
-            print("--------------------------")
+        # Notify the user that the book has been added successfully
+        print("Book added Successfully!")
+        print("--------------------------")
 
-            addBookMenu()
+        addBookMenu()
 
-
+# Function to display the delete book menu and handle user choices
 def deleteBookMenu():
     # Delete book menu options
     print("1. Home")
@@ -343,23 +348,22 @@ def deleteBook():
     db.commit()
 
     if choice.lower() in ["yes", "y"]:
-        for row in result:
-            if row[0] == bookId:
-                # Execute SQL query to delete the book from the database
-                c.execute("DELETE FROM books WHERE bookId=%s", (bookId,))
-                db.commit()
+        if (bookId,) in result:
+            # Execute SQL query to delete the book from the database
+            c.execute("DELETE FROM books WHERE bookId=%s", (bookId,))
+            db.commit()
 
-                # Notify the user that the book has been deleted successfully
-                print("Book deleted Successfully!")
-                print("--------------------------")
+            # Notify the user that the book has been deleted successfully
+            print("Book deleted Successfully!")
+            print("--------------------------")
 
-                deleteBookMenu()
-            else:
-                print(
-                    f'The book of book id "{bookId}" is does not available in the digital library.'
-                )
+            deleteBookMenu()
+        else:
+            print(
+                f'The book of book id "{bookId}" is does not available in the digital library.'
+            )
 
-                deleteBookMenu()
+            deleteBookMenu()
     elif choice.lower() in ["no", "n"]:
         print("--------------------------")
         print("Book Not Deleted!")
@@ -471,7 +475,7 @@ def updateBook():
         validOption()
 
 
-# Issue book menu options
+# Function to display the issue book menu and handle user choices
 def issueBookMenu():
     print("1. Home")
     print("2. Back")
@@ -570,7 +574,7 @@ def issueBook():
         print(f"User with user id {userId} does not exists in the digital library.")
 
 
-# Return book menu options
+# Function to display the return book menu and handle user choices
 def returnBookMenu():
     print("1. Home")
     print("2. Back")
@@ -686,6 +690,7 @@ def returnBook():
         print(f"Book with book id {bookId} does not available in the digital library.")
 
 
+# Function to display the add user menu and handle user choices
 def addUserMenu():
     # Add user menu options
     print("1. Home")
@@ -722,29 +727,30 @@ def addUser():
     result = c.fetchall()
     db.commit()
 
-    for row in result:
-        if row[0] == userId:
-            print(
-                f'The user of user id "{userId}" is already enrolled in the digital library.'
-            )
+    if (userId,) in result:
+        print(
+            f'The user of user number "{userId}" is already enrolled in the digital library.'
+        )
+        print("--------------------------")
 
-            addUserMenu()
-        else:
-            # Execute SQL query to insert the new user into the database
-            c.execute(
-                "INSERT INTO users (userId, userName,phoneNumber,emailId) VALUES (%s, %s, %s, %s, %s)",
-                (userId, userName, userPhoneNumber, userEmailId, password),
-            )
-            db.commit()
+        addUserMenu()
+    else:
+        # Execute SQL query to insert the new user into the database
+        c.execute(
+            "INSERT INTO users (userId, userName, phoneNumber, emailId, password) VALUES (%s, %s, %s, %s, %s)",
+            (userId, userName, userPhoneNumber, userEmailId, password),
+        )
+        db.commit()
 
-            # Notify the user that the user has been added successfully
-            print("--------------------------")
-            print("User added successfully!")
-            print("--------------------------")
+        # Notify the user that the user has been added successfully
+        print("--------------------------")
+        print("User added successfully!")
+        print("--------------------------")
 
-            addUserMenu()
+        addUserMenu()
 
 
+# Function to display the delete user menu and handle user choices
 def deleteUserMenu():
     # Delete user menu options
     print("1. Home")
@@ -778,21 +784,20 @@ def deleteUser():
     db.commit()
 
     if choice.lower() in ["yes", "y"]:
-        for row in result:
-            if row[0] == userId:
-                c.execute("DELETE FROM users WHERE userId=%s", (userId,))
-                db.commit()
+        if (userId,) in result:
+            c.execute("DELETE FROM users WHERE userId=%s", (userId,))
+            db.commit()
 
-                # Notify the user that the user has been deleted successfully
-                print("User deleted successfully!")
+            # Notify the user that the user has been deleted successfully
+            print("User deleted successfully!")
 
-                deleteUserMenu()
-            else:
-                print(
-                    f'The user of user id "{userId}" is does not enrolled in the digital library.'
-                )
+            deleteUserMenu()
+        else:
+            print(
+                f'The user of user id "{userId}" is does not enrolled in the digital library.'
+            )
 
-                deleteUserMenu()
+            deleteUserMenu()
     elif choice.lower() in ["no", "n"]:
         print("--------------------------")
         print("User Not Deleted!")
@@ -803,7 +808,7 @@ def deleteUser():
         validOption()
 
 
-# Update user menu option
+# Function to display the update user menu and handle user choices
 def updateUserMenu():
     print("1. Home")
     print("2. Back")
@@ -1191,6 +1196,7 @@ def notes():
         validOption()
 
 
+# Function to display the add note menu and handle user choices
 def addNoteMenu():
     print("1. Home")
     print("2. Back")
@@ -1245,6 +1251,7 @@ def addNote():
         addNoteMenu()
 
 
+# Function to display the delete note menu and handle user choices
 def deleteNoteMenu():
     # Display menu options after deleting the note
     print("1. Home")
@@ -1309,7 +1316,7 @@ def deleteNote():
         validOption()
 
 
-# Update note menu options
+# Function to display the update notes menu and handle user choices
 def updateNotesMenu():
     print("1. Home")
     print("2. Back")
@@ -1473,7 +1480,7 @@ def modifyNote():
         validOption()
 
 
-# Display notes menu options
+# Function to display the display notes menu and handle user choices
 def displayNotesMenu():
     print("1. Home")
     print("2. Back")
@@ -1522,7 +1529,7 @@ def displayNotes():
         displayNotesMenu()
 
 
-# Search notes menu options
+# Function to display the search notes menu and handle user choices
 def searchNotesMenu():
     print("1. Home")
     print("2. Back")
@@ -1639,7 +1646,7 @@ def searchNotes():
         validOption()
 
 
-# Change admin menu options
+# Function to display the change admin menu and handle user choices
 def changeAdminMenu():
     print("1. Home")
     print("2. Back")
@@ -1824,7 +1831,7 @@ def authUser():
             print("--------------------------")
 
 
-# Function to search for articles
+# Function to search & display the wikipedia articles
 def wikipediaArticles():
     # Function to fetch article details
     def fetchingArticle(keyword, articleLength=1500):
@@ -1873,6 +1880,7 @@ def wikipediaArticles():
     userMenu()
 
 
+# Function to search & display the news
 def news():
     def fetchNews(apiKey, country="in", category="science", numArticles=5):
         url = f"https://newsapi.org/v2/top-headlines"
@@ -1917,6 +1925,7 @@ def news():
     userMenu()
 
 
+# Function to display the issued books details of a user
 def issuedBooksDetails():
     print("--------------------------")
     print("Issued Books Details")
@@ -1927,20 +1936,26 @@ def issuedBooksDetails():
     result = c.fetchall()
     db.commit()
 
-    i = 0
-    for row in result:
-        i += 1
-        r = length(i)
-        print(f"{i}. Book ID : ", row[1])
-        print(" " * r + "Book Name : ", row[2])
-        print(" " * r + "Issue Date : ", row[3])
-        print(" " * r + "Issue Time : ", row[4])
-        print(" " * r + "Return Date : ", row[5])
-        print(" " * r + "Return Time : ", row[6])
-        print(" " * r + "Fine(in Rs.) : ", row[7])
+    if result == []:
+        print("No Books Issued!")
         print("--------------------------")
 
-    userMenu()
+        userMenu()
+    else:
+        i = 0
+        for row in result:
+            i += 1
+            r = length(i)
+            print(f"{i}. Book ID : ", row[1])
+            print(" " * r + "Book Name : ", row[2])
+            print(" " * r + "Issue Date : ", row[3])
+            print(" " * r + "Issue Time : ", row[4])
+            print(" " * r + "Return Date : ", row[5])
+            print(" " * r + "Return Time : ", row[6])
+            print(" " * r + "Fine(in Rs.) : ", row[7])
+            print("--------------------------")
+
+        userMenu()
 
 
 # Function to display the user menu
