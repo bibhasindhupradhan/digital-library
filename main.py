@@ -353,7 +353,7 @@ def deleteBook():
             deleteBookMenu()
         else:
             print(
-                f'The book of book id "{bookId}" is does not available in the digital library.'
+                f'The book of book id "{bookId}" does not available in the digital library.'
             )
             print("--------------------------")
             deleteBookMenu()
@@ -385,6 +385,12 @@ def updateBookMenu():
         validOption()
 
 
+def notBook(bookId):
+    print(f'The book of book id "{bookId}" does not available in the digital library.')
+    print("--------------------------")
+    updateBookMenu()
+
+
 # Function to update book details
 def updateBook():
     print("--------------------------")
@@ -400,62 +406,78 @@ def updateBook():
     userChoice = int(input("Enter your Choice to Continue : "))
     print("--------------------------")
 
+    c.execute("SELECT bookId FROM books")
+    result = c.fetchall()
+    db.commit()
+
     # User choices handling
     if userChoice == 1:
         currentBookId = int(input("Enter the Current Book ID : "))
         newBookId = int(input("Enter the New Book ID : "))
 
-        # Execute SQL query to update the Book ID
-        c.execute(
-            "UPDATE books SET bookId=%s WHERE bookId=%s", (newBookId, currentBookId)
-        )
-        db.commit()
+        if (currentBookId,) in result:
+            # Execute SQL query to update the Book ID
+            c.execute(
+                "UPDATE books SET bookId=%s WHERE bookId=%s", (newBookId, currentBookId)
+            )
+            db.commit()
 
-        print("Book ID changed Successfully!")
-        print("--------------------------")
-        updateBookMenu()
+            print("Book ID changed Successfully!")
+            print("--------------------------")
+            updateBookMenu()
+        else:
+            notBook(currentBookId)
 
     elif userChoice == 2:
         bookId = int(input("Enter the Book ID : "))
         newBookName = input("Enter the New Book Name : ")
 
-        # Execute SQL query to update the Book Name
-        c.execute("UPDATE books SET bookName=%s WHERE bookId=%s", (newBookName, bookId))
-        db.commit()
+        if (bookId,) in result:
+            # Execute SQL query to update the Book Name
+            c.execute(
+                "UPDATE books SET bookName=%s WHERE bookId=%s", (newBookName, bookId)
+            )
+            db.commit()
 
-        print("Book Name changed Successfully!")
-        print("--------------------------")
-        updateBookMenu()
+            print("Book Name changed Successfully!")
+            print("--------------------------")
+            updateBookMenu()
+        else:
+            notBook(bookId)
 
     elif userChoice == 3:
         bookId = int(input("Enter the Current Book ID : "))
         newPublicationYear = input("Enter the New Publication Year : ")
 
-        # Execute SQL query to update the Publication Year
-        c.execute(
-            "UPDATE books SET publicationYear=%s WHERE bookId=%s",
-            (newPublicationYear, bookId),
-        )
-        db.commit()
+        if (bookId,) in result:
+            # Execute SQL query to update the Publication Year
+            c.execute(
+                "UPDATE books SET publicationYear=%s WHERE bookId=%s",
+                (newPublicationYear, bookId),
+            )
+            db.commit()
 
-        print("Book Publication Year changed successfully!")
-        print("--------------------------")
-        updateBookMenu()
+            print("Book Publication Year changed successfully!")
+            print("--------------------------")
+            updateBookMenu()
 
     elif userChoice == 4:
         bookId = int(input("Enter the Current Book ID : "))
         newAuthor = input("Enter the New Author Name : ")
 
-        # Execute SQL query to update the Author Name
-        c.execute(
-            "UPDATE books SET author=%s WHERE bookId=%s",
-            (newAuthor, bookId),
-        )
-        db.commit()
+        if (bookId,) in result:
+            # Execute SQL query to update the Author Name
+            c.execute(
+                "UPDATE books SET author=%s WHERE bookId=%s",
+                (newAuthor, bookId),
+            )
+            db.commit()
 
-        print("Book Author Name changed successfully!")
-        print("--------------------------")
-        updateBookMenu()
+            print("Book Author Name changed successfully!")
+            print("--------------------------")
+            updateBookMenu()
+        else:
+            notBook(bookId)
 
     elif userChoice == 5:
         home()
@@ -786,7 +808,7 @@ def deleteUser():
             deleteUserMenu()
         else:
             print(
-                f'The user of user id "{userId}" is does not enrolled in the digital library.'
+                f'The user of user id "{userId}" does not enrolled in the digital library.'
             )
             print("--------------------------")
             deleteUserMenu()
@@ -817,6 +839,12 @@ def updateUserMenu():
         validOption()
 
 
+def notUser(userId):
+    print(f'The user of user id "{userId}" does not enrolled in the digital library.')
+    print("--------------------------")
+    updateBookMenu()
+
+
 # Function to update user details
 def updateUser():
     print("--------------------------")
@@ -835,69 +863,94 @@ def updateUser():
     userChoice = int(input("Enter your Choice to Continue : "))
     print("--------------------------")
 
+    c.execute("SELECT userId FROM users")
+    result = c.fetchall()
+    db.commit()
+
     if userChoice == 1:
         # Update user ID
         currentUserId = int(input("Enter the Current User ID : "))
         newUserId = int(input("Enter the New User ID : "))
 
-        c.execute(
-            "update users set userId=%s where userId=%s", (newUserId, currentUserId)
-        )
-        db.commit()
+        if (currentUserId,) in result:
+            c.execute(
+                "update users set userId=%s where userId=%s", (newUserId, currentUserId)
+            )
+            db.commit()
 
-        print("User ID changed Successfully!")
-        print("--------------------------")
-        updateUserMenu()
+            print("User ID changed Successfully!")
+            print("--------------------------")
+            updateUserMenu()
+        else:
+            notUser(currentUserId)
 
     elif userChoice == 2:
         # Update user name
         userId = int(input("Enter the User ID : "))
         newUserName = input("Enter the New User Name : ")
 
-        c.execute("update users set userName=%s where userId=%s", (newUserName, userId))
-        db.commit()
+        if (userId,) in result:
+            c.execute(
+                "update users set userName=%s where userId=%s", (newUserName, userId)
+            )
+            db.commit()
 
-        print("User Name changed Successfully!")
-        print("--------------------------")
-        updateUserMenu()
+            print("User Name changed Successfully!")
+            print("--------------------------")
+            updateUserMenu()
+        else:
+            notUser(userId)
 
     elif userChoice == 3:
         # Update user phone number
         userId = int(input("Enter the Current User ID : "))
         newPhoneNumber = input("Enter the New Phone Number : ")
 
-        c.execute(
-            "update users set phoneNumber=%s where userId=%s", (newPhoneNumber, userId)
-        )
-        db.commit()
+        if (userId,) in result:
+            c.execute(
+                "update users set phoneNumber=%s where userId=%s",
+                (newPhoneNumber, userId),
+            )
+            db.commit()
 
-        print("User Phone Number changed Successfully!")
-        print("--------------------------")
-        updateUserMenu()
+            print("User Phone Number changed Successfully!")
+            print("--------------------------")
+            updateUserMenu()
+        else:
+            notUser(userId)
 
     elif userChoice == 4:
         # Update user email ID
         userId = int(input("Enter the Current User ID : "))
         newEmailId = input("Enter the New Email ID : ")
 
-        c.execute("update users set emailId=%s where userId=%s", (newEmailId, userId))
-        db.commit()
+        if (userId,) in result:
+            c.execute(
+                "update users set emailId=%s where userId=%s", (newEmailId, userId)
+            )
+            db.commit()
 
-        print("User Email ID changed Successfully!")
-        print("--------------------------")
-        updateUserMenu()
+            print("User Email ID changed Successfully!")
+            print("--------------------------")
+            updateUserMenu()
+        else:
+            notUser(userId)
 
     elif userChoice == 5:
         # Update user password
         userId = int(input("Enter the Current User ID : "))
         newPassword = input("Enter the New Password : ")
+        if (userId,) in result:
+            c.execute(
+                "update users set password=%s where userId=%s", (newPassword, userId)
+            )
+            db.commit()
 
-        c.execute("update users set password=%s where userId=%s", (newPassword, userId))
-        db.commit()
-
-        print("User Password changed Successfully!")
-        print("--------------------------")
-        updateUserMenu()
+            print("User Password changed Successfully!")
+            print("--------------------------")
+            updateUserMenu()
+        else:
+            notUser(userId)
 
     elif userChoice == 6:
         # Return to home
@@ -1290,7 +1343,7 @@ def deleteNote():
 
         else:
             print(
-                f'The note of note number "{noteNumber}" is does not exists in the digital library.'
+                f'The note of note number "{noteNumber}" does not exists in the digital library.'
             )
             print("--------------------------")
             deleteNoteMenu()
@@ -1323,6 +1376,14 @@ def updateNotesMenu():
         validOption()
 
 
+def notNote(noteNumber):
+    print(
+        f'The note of note number "{noteNumber}" does not exists in the digital library.'
+    )
+    print("--------------------------")
+    updateNotesMenu()
+
+
 # Function to update a note
 def updateNotes():
     print("--------------------------")
@@ -1339,81 +1400,94 @@ def updateNotes():
     userChoice = int(input("Enter your Choice to Continue : "))
     print("--------------------------")
 
+    c.execute("SELECT noteNumber FROM notes where userId=%s", (USERID,))
+    result = c.fetchall()
+    db.commit()
+
     # Handle user choices
     if userChoice == 1:
         # Update Note Number
         currentNoteNumber = int(input("Enter the Current Note Number : "))
         newNoteNumber = int(input("Enter the New Note Number : "))
 
-        # Update date and time
-        c.execute(
-            "update notes set updateDate=CURRENT_DATE where userId=%s and noteNumber=%s",
-            (USERID, currentNoteNumber),
-        )
-        c.execute(
-            "update notes set updateTime=CURRENT_TIME where userId=%s and noteNumber=%s",
-            (USERID, currentNoteNumber),
-        )
-        # Update Note Number
-        c.execute(
-            "update notes set noteNumber=%s where userId=%s and noteNumber=%s",
-            (newNoteNumber, USERID, currentNoteNumber),
-        )
-        db.commit()
+        if (currentNoteNumber,) in result:
+            # Update date and time
+            c.execute(
+                "update notes set updateDate=CURRENT_DATE where userId=%s and noteNumber=%s",
+                (USERID, currentNoteNumber),
+            )
+            c.execute(
+                "update notes set updateTime=CURRENT_TIME where userId=%s and noteNumber=%s",
+                (USERID, currentNoteNumber),
+            )
+            # Update Note Number
+            c.execute(
+                "update notes set noteNumber=%s where userId=%s and noteNumber=%s",
+                (newNoteNumber, USERID, currentNoteNumber),
+            )
+            db.commit()
 
-        print("Note Number changed Successfully!")
-        print("--------------------------")
-        updateNotesMenu()
+            print("Note Number changed Successfully!")
+            print("--------------------------")
+            updateNotesMenu()
+        else:
+            notNote(currentNoteNumber)
 
     elif userChoice == 2:
         # Update Note Title
         noteNumber = int(input("Enter the Current Note Number : "))
         newTitle = input("Enter the New Note Title : ")
 
-        # Update date and time
-        c.execute(
-            "update notes set updateDate=CURRENT_DATE where userId=%s and noteNumber=%s",
-            (USERID, noteNumber),
-        )
-        c.execute(
-            "update notes set updateTime=CURRENT_TIME where userId=%s and noteNumber=%s",
-            (USERID, noteNumber),
-        )
-        # Update Note Title
-        c.execute(
-            "update notes set noteTitle=%s where userId=%s and noteNumber=%s",
-            (newTitle, USERID, noteNumber),
-        )
-        db.commit()
+        if (noteNumber,) in result:
+            # Update date and time
+            c.execute(
+                "update notes set updateDate=CURRENT_DATE where userId=%s and noteNumber=%s",
+                (USERID, noteNumber),
+            )
+            c.execute(
+                "update notes set updateTime=CURRENT_TIME where userId=%s and noteNumber=%s",
+                (USERID, noteNumber),
+            )
+            # Update Note Title
+            c.execute(
+                "update notes set noteTitle=%s where userId=%s and noteNumber=%s",
+                (newTitle, USERID, noteNumber),
+            )
+            db.commit()
 
-        print("Note Title changed Successfully!")
-        print("--------------------------")
-        updateNotesMenu()
+            print("Note Title changed Successfully!")
+            print("--------------------------")
+            updateNotesMenu()
+        else:
+            notNote(noteNumber)
 
     elif userChoice == 3:
         # Update Note Description
         noteNumber = int(input("Enter the Current Note Number : "))
         newDescription = input("Enter the New Note Description : ")
 
-        # Update date and time
-        c.execute(
-            "update notes set updateDate=CURRENT_DATE where userId=%s and noteNumber=%s",
-            (USERID, noteNumber),
-        )
-        c.execute(
-            "update notes set updateTime=CURRENT_TIME where userId=%s and noteNumber=%s",
-            (USERID, noteNumber),
-        )
-        # Update Note Description
-        c.execute(
-            "update notes set noteDescription=%s where userId=%s and noteNumber=%s",
-            (newDescription, USERID, noteNumber),
-        )
-        db.commit()
+        if (noteNumber,) in result:
+            # Update date and time
+            c.execute(
+                "update notes set updateDate=CURRENT_DATE where userId=%s and noteNumber=%s",
+                (USERID, noteNumber),
+            )
+            c.execute(
+                "update notes set updateTime=CURRENT_TIME where userId=%s and noteNumber=%s",
+                (USERID, noteNumber),
+            )
+            # Update Note Description
+            c.execute(
+                "update notes set noteDescription=%s where userId=%s and noteNumber=%s",
+                (newDescription, USERID, noteNumber),
+            )
+            db.commit()
 
-        print("Note Description changed successfully!")
-        print("--------------------------")
-        updateNotesMenu()
+            print("Note Description changed successfully!")
+            print("--------------------------")
+            updateNotesMenu()
+        else:
+            notNote(noteNumber)
 
     elif userChoice == 5:
         home()
